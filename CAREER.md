@@ -8,6 +8,16 @@
 
 一人法人として独立。マルチクラウド案件を中心に、IaC推進・AI導入支援・アプリ開発まで幅広く対応。
 
+### サーバレス基盤 設計・構築・運用
+
+| 項目 | 内容 |
+|:--------------|:-----|
+| 期間 | 2026年〜 |
+| フェーズ | 設計 / 構築 / 運用保守 |
+| 業務内容 | サーバレス基盤の設計・構築・運用 / IaCテンプレート管理 / CI/CDパイプライン運用 / マルチテナント展開 |
+| AWS | Lambda(SnapStart) / API Gateway / Aurora MySQL / RDS Proxy / CloudFront / S3 / Cognito / DynamoDB / WAF / SES / CodePipeline / CodeBuild / CloudFormation / Inspector / Parameter Store |
+| 言語 | Java（Spring Boot） |
+
 ### Webサービス運用改善
 
 | 項目 | 内容 |

@@ -1,6 +1,6 @@
 # エンジニア
 
-**2026年7月1日時点**
+**2026年8月1日時点**
 
 [Webページで見る](https://yutodanno.github.io/profile/) ｜ [PDF版をダウンロード](https://yutodanno.github.io/profile/profile.pdf)
 
@@ -46,7 +46,7 @@
 |:---------------------|:-----|
 | クラウド              | AWS / Google Cloud / Azure（設計〜運用まで対応可能） |
 | IaC                  | Terraform / Bicep / CloudFormation / Ansible |
-| CI/CD                | GitHub Actions / Cloud Build / GitLab CI/CD / Azure DevOps |
+| CI/CD                | GitHub Actions / Cloud Build / CodePipeline / GitLab CI/CD / Azure DevOps |
 | 監視                  | CloudWatch / Stackdriver Monitoring & Logging / Azure Monitor |
 | 言語                  | Python / Shell Script / PowerShell |
 | AI支援                | Claude Code / Codex / Cursor |
@@ -63,6 +63,7 @@
 
 | プロジェクト              | 内容 |
 |:------------------------|:-----|
+| サーバレス基盤 設計・運用    | Lambda(SnapStart) / API Gateway / Aurora MySQL、CloudFormation IaC管理、CodePipeline CI/CD、マルチテナント展開 |
 | コスト削減・メトリクス設計  | ECS / Aurora / CloudWatch 環境でのログ・メトリクス設計、コスト削減対応 |
 | マルチクラウド インフラ構築 | AWS（ECS, RDS, Bedrock）、Azure（App Service, Container Apps）、GCP（Cloud Run, Cloud SQL）横断の構築・運用 |
 | インフラ最適化            | ECS / RDS パフォーマンス改善、VPC設計、IAM整備、GitHub Actions CI/CD導入、Terraform化 |
