@@ -1,0 +1,124 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Generate PDF
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
+          cat > /tmp/head.md <<'HEADER'
+          ---
+          pdf_options:
+            format: A4
+            margin: 18mm 15mm
+            printBackground: true
+          launch_options:
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+          css: |-
+            body { font-family: "Noto Sans CJK JP", "Noto Sans JP", sans-serif; font-size: 11px; line-height: 1.7; color: #000; }
+            table { border-collapse: collapse; width: 100%; margin: 8px 0; break-inside: avoid; }
+            tr { break-inside: avoid; }
+            th, td { border: 1px solid #999; padding: 5px 9px; text-align: left; vertical-align: top; }
+            th { background: #eee; font-weight: 600; }
+            td:first-child { white-space: nowrap; }
+            h1 { font-size: 20px; margin-bottom: 4px; }
+            h2 { font-size: 15px; border-bottom: 1.5px solid #000; padding-bottom: 3px; margin-top: 22px; break-after: avoid; }
+            h3 { font-size: 13px; margin-top: 16px; border-left: 4px solid #000; padding-left: 7px; break-after: avoid; }
+            h3 + p { break-after: avoid; }
+            p, li { orphans: 2; widows: 2; }
+            h4 { font-size: 12px; margin: 0 0 6px; break-after: avoid; background: #f0f0f0; border-bottom: 1px solid #999; padding: 4px 8px; margin-left: -10px; margin-right: -10px; }
+            h4 + p { margin-top: 0; }
+            ul { margin: 4px 0; padding-left: 18px; }
+            li { margin: 1px 0; }
+            .proj { border: 1px solid #999; padding: 0 10px 10px; margin: 12px 0; break-inside: avoid; }
+            .proj > :last-child { margin-bottom: 0; }
+            .tech { margin-top: 9px; padding-top: 7px; border-top: 1px dotted #bbb; line-height: 2.1; }
+            .tech b { font-size: 9.5px; letter-spacing: .08em; color: #555; margin-right: 6px; }
+            .tech span { display: inline-block; font-size: 9.5px; color: #222; border: 1px solid #ccc; border-radius: 2px; padding: 1px 5px; margin-right: 3px; white-space: nowrap; }
+            hr { border: none; border-top: 1px solid #999; margin: 14px 0; }
+            a { color: #000; text-decoration: none; }
+            strong { font-weight: 600; }
+            code { font-family: inherit; background: #f0f0f0; padding: 0 3px; }
+          ---
+          HEADER
+          cp /tmp/head.md /tmp/profile.md
+          # 案件を枠線ブロックに、技術行をタグに変換したうえで本文を追記する
+          python3 - README.md >> /tmp/profile.md <<'PY'
+          import sys, re
+
+          lines = open(sys.argv[1], encoding="utf-8").read().split("\n")
+          out, inside, skip = [], False, 0
+
+          def close():
+              global inside
+              if inside:
+                  out.append("")
+                  out.append("</div>")
+                  inside = False
+
+          def tech_html(body):
+              items = re.findall(r"`([^`]+)`", body)
+              if not items:
+                  # 「 / 」「 ／ 」区切りにも対応（Pub/Sub・CI/CD などを壊さない）
+                  items = [t.strip() for t in re.split(r"\s*[/／]\s+|\s+[/／]\s*", body) if t.strip()]
+              return '<div class="tech"><b>技術</b>' + "".join(f"<span>{t}</span>" for t in items) + "</div>"
+
+          for i, line in enumerate(lines):
+              if skip:
+                  skip -= 1
+                  continue
+              if line.startswith("[PDF版をダウンロード"):
+                  continue
+              if inside and (line.startswith("#### ") or re.match(r"^(#{1,3} |---\s*$)", line)):
+                  close()
+              if line.startswith("#### "):
+                  out.append('<div class="proj">')
+                  out.append("")
+                  inside = True
+              # 案件のメタ情報テーブルは、PDFでは1行の見出し行に戻す
+              if line.strip() == "| 期間 | 役割 | フェーズ |":
+                  cells = [c.strip() for c in lines[i + 2].strip().strip("|").split("|")]
+                  out.append(f"**{cells[0]}**｜ 役割: {cells[1]} ｜ フェーズ: {cells[2]}")
+                  skip = 2
+                  continue
+              if line.startswith("技術: "):
+                  out.append(tech_html(line[len("技術: "):]))
+                  continue
+              out.append(line)
+
+          close()
+          print("\n".join(out))
+          PY
+          npx --yes md-to-pdf /tmp/profile.md
+          sudo cp /tmp/profile.pdf _site/profile.pdf
+      - uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

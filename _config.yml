@@ -1,0 +1,5 @@
+title: 職務経歴書
+description: 職務経歴・ポートフォリオ
+remote_theme: pages-themes/primer@v0.6.0
+plugins:
+  - jekyll-remote-theme
